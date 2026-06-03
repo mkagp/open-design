@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
+import { AuthGate } from '../../src/auth/AuthGate';
 import { installErrorHandlers } from '../../src/analytics/error-tracking';
 import { installWebObservability } from '../../src/observability/install';
 
@@ -28,5 +29,9 @@ const App = dynamic(() => import('../../src/App').then((m) => m.App), {
 });
 
 export function ClientApp() {
-  return <App />;
+  return (
+    <AuthGate>
+      <App />
+    </AuthGate>
+  );
 }

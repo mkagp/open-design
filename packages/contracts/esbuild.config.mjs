@@ -5,6 +5,7 @@ await build({
   entryNames: "[dir]/[name]",
   entryPoints: [
     "./src/index.ts",
+    "./src/api/auth.ts",
     "./src/critique.ts",
     "./src/api/connectionTest.ts",
     "./src/api/orbit.ts",
