@@ -2965,8 +2965,15 @@ if (args[0] === '--version') {
   console.log('0.45.0-test');
   process.exit(0);
 }
-process.stdin.resume();
+let input = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => { input += chunk; });
 process.stdin.on('end', () => {
+  if (!input.endsWith('\\n')) {
+    console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+    console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+    process.exit(1);
+  }
   console.log(JSON.stringify({
     type: 'message',
     role: 'assistant',

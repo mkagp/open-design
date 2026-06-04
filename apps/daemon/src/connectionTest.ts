@@ -560,7 +560,7 @@ const PROVIDER_MAX_TOKENS = 100;
 const SMOKE_PROMPT = 'Reply with only: ok';
 
 function formatPromptForAgentStdin(
-  def: Pick<RuntimeAgentDef, 'promptInputFormat'>,
+  def: Pick<RuntimeAgentDef, 'id' | 'promptInputFormat'>,
   prompt: string,
 ): string {
   const promptInputFormat = def.promptInputFormat ?? 'text';
@@ -572,6 +572,9 @@ function formatPromptForAgentStdin(
         content: [{ type: 'text', text: prompt }],
       },
     })}\n`;
+  }
+  if (def.id === 'gemini') {
+    return prompt.endsWith('\n') ? prompt : `${prompt}\n`;
   }
   return prompt;
 }
