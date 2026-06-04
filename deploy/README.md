@@ -125,6 +125,7 @@ own non-interactive/API-key auth path where supported. Compose passes through
 these optional env vars when set in `deploy/.env`:
 
 ```env
+OD_LOCAL_CLI_ALLOW_ENV_KEYS=1
 ANTHROPIC_API_KEY=
 ANTHROPIC_BASE_URL=
 OPENAI_API_KEY=

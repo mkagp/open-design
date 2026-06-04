@@ -890,6 +890,20 @@ test('spawnEnvForAgent strips CODEX_API_KEY for the codex adapter when OPENAI_BA
   assert.equal(env.PATH, '/usr/bin');
 });
 
+test('spawnEnvForAgent preserves Codex API keys when hosted Local CLI env-key passthrough is enabled', () => {
+  const env = spawnEnvForAgent('codex', {
+    OPENAI_API_KEY: 'sk-openai',
+    CODEX_API_KEY: 'sk-codex',
+    OD_LOCAL_CLI_ALLOW_ENV_KEYS: '1',
+    PATH: '/usr/bin',
+  });
+
+  assert.equal(env.OPENAI_API_KEY, 'sk-openai');
+  assert.equal(env.CODEX_API_KEY, 'sk-codex');
+  assert.equal(env.OD_LOCAL_CLI_ALLOW_ENV_KEYS, '1');
+  assert.equal(env.PATH, '/usr/bin');
+});
+
 test('spawnEnvForAgent strips Codex API keys when OPENAI_BASE_URL is empty', () => {
   const env = spawnEnvForAgent('codex', {
     OPENAI_API_KEY: 'sk-stale-byok',
@@ -1025,6 +1039,18 @@ test('spawnEnvForAgent preserves ANTHROPIC_API_KEY when ANTHROPIC_BASE_URL is se
 
   assert.equal(env.ANTHROPIC_API_KEY, 'sk-kimi');
   assert.equal(env.ANTHROPIC_BASE_URL, 'https://api.moonshot.cn/v1');
+  assert.equal(env.PATH, '/usr/bin');
+});
+
+test('spawnEnvForAgent preserves ANTHROPIC_API_KEY when hosted Local CLI env-key passthrough is enabled', () => {
+  const env = spawnEnvForAgent('claude', {
+    ANTHROPIC_API_KEY: 'sk-anthropic',
+    OD_LOCAL_CLI_ALLOW_ENV_KEYS: '1',
+    PATH: '/usr/bin',
+  });
+
+  assert.equal(env.ANTHROPIC_API_KEY, 'sk-anthropic');
+  assert.equal(env.OD_LOCAL_CLI_ALLOW_ENV_KEYS, '1');
   assert.equal(env.PATH, '/usr/bin');
 });
 

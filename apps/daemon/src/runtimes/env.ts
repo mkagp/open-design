@@ -15,6 +15,11 @@ type RuntimeEnvMap = NodeJS.ProcessEnv | Record<string, string>;
 // launched from a shell that exported the key for SDK or scripting use.
 // See issue #398.
 //
+// Hosted Docker deployments that intentionally run Local CLI mode from env
+// credentials can set OD_LOCAL_CLI_ALLOW_ENV_KEYS=1 to preserve those keys for
+// spawned CLIs. The deployment compose file sets this explicitly because the
+// operator is already placing those secrets in deploy/.env for the container.
+//
 // However, when ANTHROPIC_BASE_URL is set the user is intentionally
 // routing Claude Code to a custom endpoint (e.g. a Kimi/Moonshot proxy).
 // In that case claude login is meaningless, so preserve the API key so
@@ -61,17 +66,25 @@ export function spawnEnvForAgent(
     return env;
   }
   if (agentId === 'claude') {
-    stripUnlessCustomBaseUrl(env, 'ANTHROPIC_BASE_URL', ['ANTHROPIC_API_KEY']);
+    if (!allowsLocalCliEnvKeys(env)) {
+      stripUnlessCustomBaseUrl(env, 'ANTHROPIC_BASE_URL', ['ANTHROPIC_API_KEY']);
+    }
     return env;
   }
   if (agentId === 'codex') {
-    stripUnlessCustomBaseUrl(env, 'OPENAI_BASE_URL', [
-      'OPENAI_API_KEY',
-      'CODEX_API_KEY',
-    ]);
+    if (!allowsLocalCliEnvKeys(env)) {
+      stripUnlessCustomBaseUrl(env, 'OPENAI_BASE_URL', [
+        'OPENAI_API_KEY',
+        'CODEX_API_KEY',
+      ]);
+    }
     return env;
   }
   return env;
+}
+
+function allowsLocalCliEnvKeys(env: NodeJS.ProcessEnv): boolean {
+  return env.OD_LOCAL_CLI_ALLOW_ENV_KEYS === '1';
 }
 
 // Remove `secretKeys` from `env` unless `baseUrlKey` is set to a non-empty
