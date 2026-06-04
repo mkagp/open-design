@@ -26,6 +26,7 @@ const ENV_KEYS = [
   'CLERK_PUBLISHABLE_KEY',
   'CLERK_SECRET_KEY',
   'OD_AUTH_CLERK_ORG_ID',
+  'OD_AUTH_CLERK_DOMAIN',
   'OD_AUTH_PRIMARY_SIGN_IN_URL',
   'OD_AUTH_PRIMARY_SIGN_UP_URL',
   'OD_AUTH_COOKIE_SECRET',
@@ -47,7 +48,8 @@ function setAuthEnv() {
   process.env.CLERK_PUBLISHABLE_KEY = 'pk_test_public';
   process.env.CLERK_SECRET_KEY = 'sk_test_secret';
   process.env.OD_AUTH_CLERK_ORG_ID = 'org_test';
-  process.env.OD_AUTH_PRIMARY_SIGN_IN_URL = 'https://login.mkagrowth.com/login';
+  process.env.OD_AUTH_CLERK_DOMAIN = 'mkagp.com';
+  process.env.OD_AUTH_PRIMARY_SIGN_IN_URL = 'https://login.mkagrowth.com/sign-in';
   process.env.OD_AUTH_PRIMARY_SIGN_UP_URL = 'https://login.mkagrowth.com/sign-up';
   process.env.OD_AUTH_COOKIE_SECRET = '0123456789abcdef0123456789abcdef';
   process.env.OD_AUTH_SESSION_TTL_SECONDS = '28800';
@@ -107,8 +109,8 @@ describe('Clerk auth config', () => {
       provider: 'clerk',
       publishableKey: 'pk_test_public',
       appOrigin: 'https://design.mkagp.com',
-      clerkDomain: 'design.mkagp.com',
-      signInUrl: 'https://login.mkagrowth.com/login',
+      clerkDomain: 'mkagp.com',
+      signInUrl: 'https://login.mkagrowth.com/sign-in',
       signUpUrl: 'https://login.mkagrowth.com/sign-up',
       orgId: 'org_test',
     });

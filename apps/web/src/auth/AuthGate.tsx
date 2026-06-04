@@ -14,6 +14,7 @@ type AuthGateProps = {
 
 type EnabledPublicAuthConfig = AuthConfigResponse & {
   publishableKey: string;
+  clerkDomain: string;
   signInUrl: string;
   signUpUrl: string;
 };
@@ -56,7 +57,7 @@ function AuthErrorScreen({ title, message, onRetry }: { title: string; message: 
 }
 
 function isEnabledConfig(config: AuthConfigResponse): config is EnabledPublicAuthConfig {
-  return Boolean(config.enabled && config.publishableKey && config.signInUrl && config.signUpUrl);
+  return Boolean(config.enabled && config.publishableKey && config.clerkDomain && config.signInUrl && config.signUpUrl);
 }
 
 function ClerkSessionBootstrap({ children }: AuthGateProps) {
@@ -160,7 +161,7 @@ export function AuthGate({ children }: AuthGateProps) {
     <ClerkProvider
       publishableKey={state.config.publishableKey}
       isSatellite
-      domain={(url) => url.host}
+      domain={state.config.clerkDomain}
       signInUrl={state.config.signInUrl}
       signUpUrl={state.config.signUpUrl}
     >

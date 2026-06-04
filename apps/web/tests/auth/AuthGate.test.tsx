@@ -67,7 +67,8 @@ describe('AuthGate', () => {
         enabled: true,
         provider: 'clerk',
         publishableKey: 'pk_test_public',
-        signInUrl: 'https://login.mkagrowth.com/login',
+        clerkDomain: 'mkagp.com',
+        signInUrl: 'https://login.mkagrowth.com/sign-in',
         signUpUrl: 'https://login.mkagrowth.com/sign-up',
       }),
     );
@@ -83,7 +84,8 @@ describe('AuthGate', () => {
     expect(clerkMock.providerProps[0]).toMatchObject({
       publishableKey: 'pk_test_public',
       isSatellite: true,
-      signInUrl: 'https://login.mkagrowth.com/login',
+      domain: 'mkagp.com',
+      signInUrl: 'https://login.mkagrowth.com/sign-in',
       signUpUrl: 'https://login.mkagrowth.com/sign-up',
     });
   });
@@ -97,7 +99,8 @@ describe('AuthGate', () => {
           enabled: true,
           provider: 'clerk',
           publishableKey: 'pk_test_public',
-          signInUrl: 'https://login.mkagrowth.com/login',
+          clerkDomain: 'mkagp.com',
+          signInUrl: 'https://login.mkagrowth.com/sign-in',
           signUpUrl: 'https://login.mkagrowth.com/sign-up',
         }),
       )
@@ -126,7 +129,8 @@ describe('AuthGate', () => {
           enabled: true,
           provider: 'clerk',
           publishableKey: 'pk_test_public',
-          signInUrl: 'https://login.mkagrowth.com/login',
+          clerkDomain: 'mkagp.com',
+          signInUrl: 'https://login.mkagrowth.com/sign-in',
           signUpUrl: 'https://login.mkagrowth.com/sign-up',
         }),
       )

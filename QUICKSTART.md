@@ -154,7 +154,8 @@ OD_PUBLIC_BASE_URL=https://design.mkagp.com
 CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_SECRET_KEY=sk_live_...
 OD_AUTH_CLERK_ORG_ID=org_...
-OD_AUTH_PRIMARY_SIGN_IN_URL=https://login.mkagrowth.com/login
+OD_AUTH_CLERK_DOMAIN=design.mkagp.com
+OD_AUTH_PRIMARY_SIGN_IN_URL=https://login.mkagrowth.com/sign-in
 OD_AUTH_PRIMARY_SIGN_UP_URL=https://login.mkagrowth.com/sign-up
 OD_AUTH_COOKIE_SECRET=<openssl rand -hex 32>
 ```

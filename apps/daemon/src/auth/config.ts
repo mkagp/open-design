@@ -54,6 +54,7 @@ export function loadAuthConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Cle
   if (clean(env.OD_AUTH_ENABLED) !== '1') return { enabled: false };
 
   const publicBaseUrl = parseHttpsUrl(requireEnv(env, 'OD_PUBLIC_BASE_URL'), 'OD_PUBLIC_BASE_URL');
+  const clerkDomain = clean(env.OD_AUTH_CLERK_DOMAIN) || publicBaseUrl.host;
   const signInUrl = parseHttpsUrl(
     requireEnv(env, 'OD_AUTH_PRIMARY_SIGN_IN_URL'),
     'OD_AUTH_PRIMARY_SIGN_IN_URL',
@@ -74,7 +75,7 @@ export function loadAuthConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Cle
     secretKey: requireEnv(env, 'CLERK_SECRET_KEY'),
     orgId: requireEnv(env, 'OD_AUTH_CLERK_ORG_ID'),
     appOrigin: publicBaseUrl.origin,
-    clerkDomain: publicBaseUrl.host,
+    clerkDomain,
     signInUrl: signInUrl.toString(),
     signUpUrl: signUpUrl.toString(),
     cookieSecret,

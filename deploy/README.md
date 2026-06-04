@@ -58,14 +58,15 @@ OPEN_DESIGN_ALLOWED_ORIGINS=https://design.mkagp.com
 CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_SECRET_KEY=sk_live_...
 OD_AUTH_CLERK_ORG_ID=org_...
-OD_AUTH_PRIMARY_SIGN_IN_URL=https://login.mkagrowth.com/login
+OD_AUTH_CLERK_DOMAIN=design.mkagp.com
+OD_AUTH_PRIMARY_SIGN_IN_URL=https://login.mkagrowth.com/sign-in
 OD_AUTH_PRIMARY_SIGN_UP_URL=https://login.mkagrowth.com/sign-up
 OD_AUTH_COOKIE_SECRET=<openssl rand -hex 32>
 OD_API_TOKEN=<machine token>
 ```
 
-Clerk must have `design.mkagp.com` configured as a verified satellite domain and
-must allow redirects back to `https://design.mkagp.com`.
+Clerk must have the configured `OD_AUTH_CLERK_DOMAIN` set up as a verified
+satellite domain and must allow redirects back to `https://design.mkagp.com`.
 
 Pin a specific published image with a digest instead of the mutable `latest` tag:
 
