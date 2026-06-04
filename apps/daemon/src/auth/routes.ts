@@ -28,7 +28,6 @@ export function publicAuthConfig(config: ClerkAuthConfig): AuthConfigResponse {
     clerkDomain: config.clerkDomain,
     signInUrl: config.signInUrl,
     signUpUrl: config.signUpUrl,
-    orgId: config.orgId,
   };
 }
 

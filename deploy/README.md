@@ -77,6 +77,68 @@ The image intentionally does not bundle Claude/Codex/Gemini CLI binaries. Keep
 those outside the image, or build a separate private runtime layer if a server
 deployment needs local code-agent CLIs installed in the container.
 
+## Local CLI runtime image
+
+For hosted deployments that need Local CLI mode inside Docker, build the larger
+Debian-based runtime variant:
+
+```env
+OPEN_DESIGN_IMAGE=open-design-agent-clis:local
+OPEN_DESIGN_DOCKERFILE=deploy/Dockerfile.agent-clis
+OPEN_DESIGN_MEM_LIMIT=2g
+NODE_OPTIONS=--max-old-space-size=512
+```
+
+Then rebuild and restart:
+
+```bash
+docker compose -f deploy/docker-compose.yml build
+docker compose -f deploy/docker-compose.yml up -d
+```
+
+This variant installs exact npm package versions for:
+
+- `@anthropic-ai/claude-code`
+- `@openai/codex`
+- `@google/gemini-cli`
+- `opencode-ai`
+
+The container remains read-only except for the existing `/app/.od` volume. CLI
+home, auth, cache, and config paths are pointed under `/app/.od/home`, so sign-in
+state survives container recreation through the same `open_design_data` volume
+as the SQLite database.
+
+Verify the binaries are visible to the daemon user:
+
+```bash
+docker compose -f deploy/docker-compose.yml exec open-design sh -lc \
+  'which claude codex gemini opencode && echo "$HOME"'
+```
+
+The CLIs are bundled, but provider authentication still has to be completed or
+configured for the container user. Use the app's Settings tests or each CLI's
+own non-interactive/API-key auth path where supported. Compose passes through
+these optional env vars when set in `deploy/.env`:
+
+```env
+ANTHROPIC_API_KEY=
+ANTHROPIC_BASE_URL=
+OPENAI_API_KEY=
+CODEX_API_KEY=
+OPENAI_BASE_URL=
+GEMINI_API_KEY=
+GOOGLE_API_KEY=
+```
+
+After authentication is configured, confirm the daemon detects the bundled CLIs:
+
+```bash
+source deploy/.env
+curl -sS \
+  -H "Authorization: Bearer $OD_API_TOKEN" \
+  http://127.0.0.1:${OPEN_DESIGN_PORT:-7456}/api/agents
+```
+
 ## Publish to Docker Hub
 
 ```bash

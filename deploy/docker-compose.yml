@@ -6,7 +6,7 @@ services:
     image: ${OPEN_DESIGN_IMAGE:-docker.io/vanjayak/open-design:latest}
     build:
       context: ..
-      dockerfile: deploy/Dockerfile
+      dockerfile: ${OPEN_DESIGN_DOCKERFILE:-deploy/Dockerfile}
     restart: always
     environment:
       NODE_ENV: production
@@ -27,6 +27,13 @@ services:
       OD_AUTH_COOKIE_SECRET: ${OD_AUTH_COOKIE_SECRET:-}
       OD_AUTH_SESSION_TTL_SECONDS: ${OD_AUTH_SESSION_TTL_SECONDS:-}
       CLERK_JWT_KEY: ${CLERK_JWT_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CODEX_API_KEY: ${CODEX_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
     ports:
       - "127.0.0.1:${OPEN_DESIGN_PORT:-7456}:7456"
     volumes:

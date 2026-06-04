@@ -112,10 +112,10 @@ describe('Clerk auth config', () => {
       clerkDomain: 'mkagp.com',
       signInUrl: 'https://login.mkagrowth.com/sign-in',
       signUpUrl: 'https://login.mkagrowth.com/sign-up',
-      orgId: 'org_test',
     });
     expect(JSON.stringify(body)).not.toContain('sk_test_secret');
     expect(JSON.stringify(body)).not.toContain('0123456789abcdef');
+    expect(JSON.stringify(body)).not.toContain('org_test');
   });
 });
 

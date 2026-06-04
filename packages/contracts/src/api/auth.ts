@@ -6,7 +6,6 @@ export type AuthConfigResponse = {
   clerkDomain?: string;
   signInUrl?: string;
   signUpUrl?: string;
-  orgId?: string;
 };
 
 export type AuthSessionResponse = {

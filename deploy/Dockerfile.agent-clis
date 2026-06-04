@@ -1,0 +1,132 @@
+ARG NODE_IMAGE=docker.io/library/node:24-bookworm-slim
+ARG RUNTIME_IMAGE=docker.io/library/node:24-bookworm-slim
+
+FROM ${NODE_IMAGE} AS build
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+ARG NO_PROXY
+
+ENV HTTP_PROXY=${HTTP_PROXY}
+ENV HTTPS_PROXY=${HTTPS_PROXY}
+ENV http_proxy=${http_proxy}
+ENV https_proxy=${https_proxy}
+ENV no_proxy=${no_proxy}
+ENV NO_PROXY=${NO_PROXY}
+ENV CI=true
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 make g++ ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
+COPY packages ./packages
+COPY tools ./tools
+COPY apps/daemon/package.json ./apps/daemon/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY e2e/package.json ./e2e/package.json
+RUN corepack enable && \
+    corepack prepare pnpm@10.33.2 --activate && \
+    pnpm install --frozen-lockfile
+
+COPY apps ./apps
+RUN pnpm --filter @open-design/daemon build && \
+    pnpm --filter @open-design/web build && \
+    pnpm --filter @open-design/daemon deploy --legacy --prod /app/deploy/daemon && \
+    pnpm store prune && \
+    rm -rf \
+      /root/.cache \
+      /root/.local/share/pnpm/store \
+      /app/deploy/daemon/node_modules/.cache \
+      /app/deploy/daemon/node_modules/@types \
+      /app/deploy/daemon/node_modules/.pnpm/@types+* \
+      /app/deploy/daemon/node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3/deps \
+      /app/deploy/daemon/node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3/src && \
+    find /app/deploy/daemon/node_modules -type d \( \
+      -name test -o \
+      -name tests -o \
+      -name "__tests__" -o \
+      -name docs -o \
+      -name doc -o \
+      -name example -o \
+      -name examples -o \
+      -name ".github" \
+    \) -prune -exec rm -rf '{}' + && \
+    find /app/deploy/daemon/node_modules -type f \( \
+      -name "*.md" -o \
+      -name "*.markdown" -o \
+      -name "*.d.ts" -o \
+      -name "*.d.cts" -o \
+      -name "*.d.mts" -o \
+      -name "*.map" -o \
+      -name "*.tsbuildinfo" -o \
+      -name "binding.gyp" \
+    \) -delete
+
+FROM ${RUNTIME_IMAGE}
+
+ARG CLAUDE_CODE_VERSION=2.1.162
+ARG CODEX_CLI_VERSION=0.137.0
+ARG GEMINI_CLI_VERSION=0.45.0
+ARG OPENCODE_AI_VERSION=1.15.13
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      bash \
+      ca-certificates \
+      git \
+      openssh-client \
+      poppler-utils \
+      ripgrep \
+      tini && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd --system --gid 1001 open-design && \
+    useradd --system --uid 1001 --gid open-design --home-dir /app/.od/home --shell /usr/sbin/nologin open-design
+
+RUN npm install -g --omit=dev --no-audit --no-fund \
+      @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+      @openai/codex@${CODEX_CLI_VERSION} \
+      @google/gemini-cli@${GEMINI_CLI_VERSION} \
+      opencode-ai@${OPENCODE_AI_VERSION} && \
+    command -v claude && \
+    command -v codex && \
+    command -v gemini && \
+    command -v opencode && \
+    npm cache clean --force
+
+WORKDIR /app
+COPY --from=build --chown=open-design:open-design /app/deploy/daemon ./apps/daemon
+COPY --from=build --chown=open-design:open-design /app/apps/web/out ./apps/web/out
+COPY --chown=open-design:open-design skills ./skills
+COPY --chown=open-design:open-design design-systems ./design-systems
+COPY --chown=open-design:open-design craft ./craft
+COPY --chown=open-design:open-design prompt-templates ./prompt-templates
+COPY --chown=open-design:open-design assets/frames ./assets/frames
+COPY --chown=open-design:open-design assets/community-pets ./assets/community-pets
+COPY --chown=open-design:open-design plugins/_official ./plugins/_official
+
+RUN mkdir -p /app/.od/home/.config /app/.od/home/.local/share /app/.od/home/.cache && \
+    chown -R open-design:open-design /app
+
+ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=512
+ENV OD_BIND_HOST=0.0.0.0
+ENV OD_PORT=7456
+ENV HOME=/app/.od/home
+ENV OD_AGENT_HOME=/app/.od/home
+ENV XDG_CONFIG_HOME=/app/.od/home/.config
+ENV XDG_DATA_HOME=/app/.od/home/.local/share
+ENV XDG_CACHE_HOME=/app/.od/home/.cache
+ENV CODEX_HOME=/app/.od/home/.codex
+ENV CLAUDE_CONFIG_DIR=/app/.od/home/.claude
+
+EXPOSE 7456
+
+USER open-design
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["sh", "-lc", "mkdir -p \"$HOME\" \"$XDG_CONFIG_HOME\" \"$XDG_DATA_HOME\" \"$XDG_CACHE_HOME\" \"$CODEX_HOME\" \"$CLAUDE_CONFIG_DIR\" && exec node apps/daemon/dist/cli.js --no-open"]

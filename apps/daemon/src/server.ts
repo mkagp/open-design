@@ -3839,6 +3839,7 @@ export async function startServer({
   }
 
   const app = express();
+  app.disable('x-powered-by');
   app.use(express.json({ limit: '4mb' }));
 
   // Multi-directory scanning shared by every skill / template surface. The
