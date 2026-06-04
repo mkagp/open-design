@@ -698,6 +698,9 @@ function isBenignGeminiConnectionTestStderr(text: string): boolean {
     .filter(Boolean);
   if (lines.length === 0) return false;
   return lines.every((line) =>
+    // The status detail truncates stderr for display and can leave the tail
+    // of Gemini's repeated YOLO warning as a standalone "." line.
+    line === '.' ||
     line === 'YOLO mode is enabled. All tool calls will be automatically approved.' ||
     /color .*support (?:not detected|is recommended)/i.test(line) ||
     /^\[STARTUP\] Phase 'cleanup_ops' was started but never ended\. Skipping metrics\.$/i.test(line) ||

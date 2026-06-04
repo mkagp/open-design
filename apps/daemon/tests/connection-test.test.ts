@@ -3019,6 +3019,46 @@ process.exit(1);
     );
   });
 
+  it('accepts Gemini smoke-test text when stderr tail starts mid-warning', async () => {
+    await withFakeGemini(
+      `
+const args = process.argv.slice(2);
+if (args[0] === '--version') {
+  console.log('0.45.0-test');
+  process.exit(0);
+}
+const promptIndex = args.indexOf('-p');
+if (promptIndex < 0 || args[promptIndex + 1] !== 'Reply with only: ok') {
+  console.error('expected smoke prompt through -p');
+  process.exit(1);
+}
+console.log(JSON.stringify({
+  type: 'message',
+  role: 'assistant',
+  content: 'ok',
+}));
+console.error('.');
+console.error("[STARTUP] Phase 'cleanup_ops' was started but never ended. Skipping metrics.");
+console.error("[STARTUP] Cannot measure phase 'cleanup_ops': start mark 'startup:cleanup_ops:start' not found (likely cleared by reset).");
+process.exit(1);
+`,
+      async () => {
+        const result = await testAgentConnection({
+          agentId: 'gemini',
+          model: 'gemini-2.5-pro',
+        });
+
+        expect(result).toMatchObject({
+          ok: true,
+          kind: 'success',
+          model: 'gemini-2.5-pro',
+        });
+        expect(result.sample).toBe('ok');
+        expect(result.diagnostics?.exitCode).toBe(1);
+      },
+    );
+  });
+
   it('attaches structured diagnostics on Claude exit-failed (#2248)', async () => {
     await withFakeClaude(
       `console.error('boom-on-stderr'); process.exit(7);`,
