@@ -9,6 +9,8 @@
 // floating settings cog in the top-right corner of the main content.
 
 import type { ReactNode } from 'react';
+import { UserButton } from '@clerk/clerk-react';
+import { useAuthUi } from '../auth/AuthGate';
 import { EntryHelpMenu } from './EntryHelpMenu';
 import { Icon } from './Icon';
 import { useT } from '../i18n';
@@ -55,6 +57,7 @@ function NavButton({ active, ariaLabel, tooltip, onClick, testId, children }: Na
 
 export function EntryNavRail({ view, onViewChange, onNewProject }: Props) {
   const t = useT();
+  const authUi = useAuthUi();
   const brandLabel = t('app.brand');
   const homeLabel = t('entry.navHome');
   const isHome = view === 'home';
@@ -143,7 +146,24 @@ export function EntryNavRail({ view, onViewChange, onNewProject }: Props) {
       </div>
       <div className="entry-nav-rail__footer">
         <div className="entry-nav-rail__divider" role="separator" />
-        <EntryHelpMenu />
+        {authUi.enabled ? (
+          <div
+            className="entry-nav-rail__profile"
+            data-tooltip="Profile"
+            data-testid="entry-profile-button"
+          >
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonTrigger: 'entry-nav-rail__profile-trigger',
+                  userButtonAvatarBox: 'entry-nav-rail__profile-avatar',
+                },
+              }}
+            />
+          </div>
+        ) : (
+          <EntryHelpMenu />
+        )}
       </div>
     </nav>
   );

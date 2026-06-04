@@ -1867,6 +1867,9 @@ async function testAgentConnectionInternal(
         { model: input.model ?? null, reasoning: input.reasoning ?? null },
         { cwd: tempDir },
       );
+      if (input.agentId === 'gemini') {
+        args.push('-p', SMOKE_PROMPT);
+      }
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
       // buildArgs runs *after* binary resolution but *before* spawn, so
@@ -1884,7 +1887,11 @@ async function testAgentConnectionInternal(
       };
     }
     const stdinMode =
-      def.promptViaStdin || def.streamFormat === 'acp-json-rpc' ? 'pipe' : 'ignore';
+      input.agentId === 'gemini'
+        ? 'ignore'
+        : def.promptViaStdin || def.streamFormat === 'acp-json-rpc'
+          ? 'pipe'
+          : 'ignore';
     const baseEnv = spawnEnvForAgent(
       input.agentId,
       {

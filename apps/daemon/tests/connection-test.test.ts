@@ -2965,24 +2965,19 @@ if (args[0] === '--version') {
   console.log('0.45.0-test');
   process.exit(0);
 }
-let input = '';
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', (chunk) => { input += chunk; });
-process.stdin.on('end', () => {
-  if (!input.endsWith('\\n')) {
-    console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
-    console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
-    process.exit(1);
-  }
-  console.log(JSON.stringify({
-    type: 'message',
-    role: 'assistant',
-    content: 'ok',
-  }));
-  console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
-  console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+const promptIndex = args.indexOf('-p');
+if (promptIndex < 0 || args[promptIndex + 1] !== 'Reply with only: ok') {
+  console.error('expected smoke prompt through -p');
   process.exit(1);
-});
+}
+console.log(JSON.stringify({
+  type: 'message',
+  role: 'assistant',
+  content: 'ok',
+}));
+console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+process.exit(1);
 `,
       async () => {
         const result = await testAgentConnection({ agentId: 'gemini' });
@@ -3003,16 +2998,13 @@ if (args[0] === '--version') {
   console.log('0.45.0-test');
   process.exit(0);
 }
-process.stdin.resume();
-process.stdin.on('end', () => {
-  console.log(JSON.stringify({
-    type: 'message',
-    role: 'assistant',
-    content: 'ok',
-  }));
-  console.error('provider crashed after response');
-  process.exit(1);
-});
+console.log(JSON.stringify({
+  type: 'message',
+  role: 'assistant',
+  content: 'ok',
+}));
+console.error('provider crashed after response');
+process.exit(1);
 `,
       async () => {
         const result = await testAgentConnection({ agentId: 'gemini' });

@@ -3,7 +3,7 @@
 import { ClerkProvider, useAuth, useClerk } from '@clerk/clerk-react';
 import type { AuthConfigResponse } from '@open-design/contracts';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 import { fetchAuthConfig } from './config';
 import { AuthSessionError, createDaemonAuthSession } from './session';
@@ -24,6 +24,16 @@ type ConfigState =
   | { status: 'disabled' }
   | { status: 'enabled'; config: EnabledPublicAuthConfig }
   | { status: 'error'; message: string };
+
+type AuthUiContextValue = {
+  enabled: boolean;
+};
+
+const AuthUiContext = createContext<AuthUiContextValue>({ enabled: false });
+
+export function useAuthUi() {
+  return useContext(AuthUiContext);
+}
 
 function LoadingShell() {
   return <div className="od-loading-shell">Loading Open Design...</div>;
@@ -143,7 +153,13 @@ export function AuthGate({ children }: AuthGateProps) {
   }, [attempt]);
 
   if (state.status === 'loading') return <LoadingShell />;
-  if (state.status === 'disabled') return <>{children}</>;
+  if (state.status === 'disabled') {
+    return (
+      <AuthUiContext.Provider value={{ enabled: false }}>
+        {children}
+      </AuthUiContext.Provider>
+    );
+  }
   if (state.status === 'error') {
     return (
       <AuthErrorScreen
@@ -165,7 +181,9 @@ export function AuthGate({ children }: AuthGateProps) {
       signInUrl={state.config.signInUrl}
       signUpUrl={state.config.signUpUrl}
     >
-      <ClerkSessionBootstrap>{children}</ClerkSessionBootstrap>
+      <AuthUiContext.Provider value={{ enabled: true }}>
+        <ClerkSessionBootstrap>{children}</ClerkSessionBootstrap>
+      </AuthUiContext.Provider>
     </ClerkProvider>
   );
 }
