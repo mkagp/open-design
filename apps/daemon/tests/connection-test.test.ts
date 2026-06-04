@@ -94,6 +94,10 @@ async function withFakeClaude<T>(script: string, run: () => Promise<T>): Promise
   return withFakeAgent('claude', script, run);
 }
 
+async function withFakeGemini<T>(script: string, run: () => Promise<T>): Promise<T> {
+  return withFakeAgent('gemini', script, run);
+}
+
 async function withFakeOpenCode<T>(script: string, run: () => Promise<T>): Promise<T> {
   return withFakeAgent('opencode', script, run);
 }
@@ -2949,6 +2953,66 @@ process.stdin.on('end', () => {
         expect(typeof result.diagnostics?.binaryPath).toBe('string');
         expect(result.diagnostics?.binaryPath ?? '').toMatch(/claude/);
         expect(result.diagnostics?.exitCode).toBe(0);
+      },
+    );
+  });
+
+  it('accepts Gemini smoke-test text when the CLI exits after benign warnings', async () => {
+    await withFakeGemini(
+      `
+const args = process.argv.slice(2);
+if (args[0] === '--version') {
+  console.log('0.45.0-test');
+  process.exit(0);
+}
+process.stdin.resume();
+process.stdin.on('end', () => {
+  console.log(JSON.stringify({
+    type: 'message',
+    role: 'assistant',
+    content: 'ok',
+  }));
+  console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+  console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+  process.exit(1);
+});
+`,
+      async () => {
+        const result = await testAgentConnection({ agentId: 'gemini' });
+
+        expect(result).toMatchObject({ ok: true, kind: 'success' });
+        expect(result.diagnostics?.phase).toBe('connection_smoke_test');
+        expect(result.diagnostics?.exitCode).toBe(1);
+        expect(result.diagnostics?.stderrTail ?? '').toContain('YOLO mode is enabled');
+      },
+    );
+  });
+
+  it('does not accept Gemini smoke-test text when the nonzero exit has real stderr', async () => {
+    await withFakeGemini(
+      `
+const args = process.argv.slice(2);
+if (args[0] === '--version') {
+  console.log('0.45.0-test');
+  process.exit(0);
+}
+process.stdin.resume();
+process.stdin.on('end', () => {
+  console.log(JSON.stringify({
+    type: 'message',
+    role: 'assistant',
+    content: 'ok',
+  }));
+  console.error('provider crashed after response');
+  process.exit(1);
+});
+`,
+      async () => {
+        const result = await testAgentConnection({ agentId: 'gemini' });
+
+        expect(result.ok).toBe(false);
+        expect(result.kind).toBe('agent_spawn_failed');
+        expect(result.diagnostics?.stderrTail ?? '').toContain('provider crashed');
       },
     );
   });

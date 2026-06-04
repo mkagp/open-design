@@ -688,6 +688,33 @@ function smokeFailureDetail(sample: string): string {
     : 'Provider returned a 2xx response without assistant text';
 }
 
+function isBenignGeminiConnectionTestStderr(text: string): boolean {
+  const lines = text
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return false;
+  return lines.every((line) =>
+    line === 'YOLO mode is enabled. All tool calls will be automatically approved.' ||
+    /color .*support (?:not detected|is recommended)/i.test(line),
+  );
+}
+
+function shouldAcceptPostSmokeAgentExit(args: {
+  agentId: string;
+  text: string;
+  exit: { code: number | null; signal: NodeJS.Signals | null };
+  stderrTail: string;
+}): boolean {
+  return (
+    args.agentId === 'gemini' &&
+    args.exit.code === 1 &&
+    !args.exit.signal &&
+    isSmokeOkReply(args.text) &&
+    isBenignGeminiConnectionTestStderr(args.stderrTail)
+  );
+}
+
 function inspectProviderCompletion(
   protocol: ConnectionTestProtocol,
   data: unknown,
@@ -1981,15 +2008,25 @@ async function testAgentConnectionInternal(
         acpCleanCompletion;
       const exitedCleanly =
         (winner.code === 0 && !winner.signal) || acpForcedShutdown;
+      const stderrTail = sink.getStderrTail().trim();
       if (buffered) {
         const rawSample = truncateSample(buffered);
         const exitInfo = { code: winner.code, signal: winner.signal };
         if (rawSample && isLikelyModelErrorText(rawSample)) {
           return resultFromAgentText(buffered, exitInfo);
         }
-        if (exitedCleanly) return resultFromAgentText(buffered, exitInfo);
+        if (
+          exitedCleanly ||
+          shouldAcceptPostSmokeAgentExit({
+            agentId: input.agentId,
+            text: buffered,
+            exit: exitInfo,
+            stderrTail,
+          })
+        ) {
+          return resultFromAgentText(buffered, exitInfo);
+        }
       }
-      const stderrTail = sink.getStderrTail().trim();
       const rawStdoutTail = sink.getRawStdoutTail().trim();
       const acpFatal = Boolean(acpSession?.hasFatalError?.());
       const rawDetail = [
