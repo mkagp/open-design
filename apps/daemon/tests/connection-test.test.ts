@@ -2977,6 +2977,8 @@ console.log(JSON.stringify({
 }));
 console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
 console.error('YOLO mode is enabled. All tool calls will be automatically approved.');
+console.error("[STARTUP] Phase 'cleanup_ops' was started but never ended. Skipping metrics.");
+console.error("[STARTUP] Cannot measure phase 'cleanup_ops': start mark 'startup:cleanup_ops:start' not found (likely cleared by reset).");
 process.exit(1);
 `,
       async () => {
@@ -2986,6 +2988,7 @@ process.exit(1);
         expect(result.diagnostics?.phase).toBe('connection_smoke_test');
         expect(result.diagnostics?.exitCode).toBe(1);
         expect(result.diagnostics?.stderrTail ?? '').toContain('YOLO mode is enabled');
+        expect(result.diagnostics?.stderrTail ?? '').toContain('cleanup_ops');
       },
     );
   });

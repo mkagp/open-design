@@ -699,7 +699,9 @@ function isBenignGeminiConnectionTestStderr(text: string): boolean {
   if (lines.length === 0) return false;
   return lines.every((line) =>
     line === 'YOLO mode is enabled. All tool calls will be automatically approved.' ||
-    /color .*support (?:not detected|is recommended)/i.test(line),
+    /color .*support (?:not detected|is recommended)/i.test(line) ||
+    /^\[STARTUP\] Phase 'cleanup_ops' was started but never ended\. Skipping metrics\.$/i.test(line) ||
+    /^\[STARTUP\] Cannot measure phase 'cleanup_ops': start mark 'startup:cleanup_ops:start' not found \(likely cleared by reset\)\.$/i.test(line),
   );
 }
 
