@@ -34,7 +34,7 @@ RUN corepack enable && \
 
 COPY apps ./apps
 RUN pnpm --filter @open-design/daemon build && \
-    pnpm --filter @open-design/web build && \
+    OD_SKIP_NEXT_TYPECHECK=1 pnpm --filter @open-design/web build && \
     pnpm --filter @open-design/daemon deploy --legacy --prod /app/deploy/daemon && \
     pnpm store prune && \
     rm -rf \

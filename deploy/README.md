@@ -96,6 +96,10 @@ docker compose -f deploy/docker-compose.yml build
 docker compose -f deploy/docker-compose.yml up -d
 ```
 
+Docker image builds skip Next.js's in-build TypeScript validation to keep
+low-memory hosts from stalling during `next build`. Run
+`pnpm --filter @open-design/web typecheck` separately before publishing changes.
+
 This variant installs exact npm package versions for:
 
 - `@anthropic-ai/claude-code`

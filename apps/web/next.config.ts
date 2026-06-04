@@ -90,6 +90,7 @@ function resolveDevTsconfigPath() {
 }
 
 const DEV_TSCONFIG_PATH = resolveDevTsconfigPath();
+const shouldSkipNextTypecheck = process.env.OD_SKIP_NEXT_TYPECHECK === '1';
 
 function parseAllowedDevHost(value: string): string | null {
   const trimmed = value.trim();
@@ -164,10 +165,13 @@ const nextConfig: NextConfig = {
   // to inject chunk IDs, upload to PostHog, and ALWAYS delete the .map files
   // before packaging so source never ships inside an installer.
   productionBrowserSourceMaps: true,
+  typescript: {
+    ...(DEV_TSCONFIG_PATH ? { tsconfigPath: DEV_TSCONFIG_PATH } : {}),
+    ...(shouldSkipNextTypecheck ? { ignoreBuildErrors: true } : {}),
+  },
   turbopack: {
     root: WORKSPACE_ROOT,
   },
-  ...(DEV_TSCONFIG_PATH ? { typescript: { tsconfigPath: DEV_TSCONFIG_PATH } } : {}),
   // Static exports keep Next.js's default `out/` output directory so static
   // hosts like Vercel can publish the generated site directly. Server runtimes
   // still keep a predictable traced build directory for sidecar launchers.
