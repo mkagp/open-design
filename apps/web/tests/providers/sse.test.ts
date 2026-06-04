@@ -769,9 +769,13 @@ describe('streamViaDaemon', () => {
     }));
     expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/runs/run-1/events', {
       method: 'GET',
+      credentials: 'same-origin',
       signal: streamController.signal,
     });
-    expect(fetchMock).toHaveBeenNthCalledWith(3, '/api/runs/run-1/cancel', { method: 'POST' });
+    expect(fetchMock).toHaveBeenNthCalledWith(3, '/api/runs/run-1/cancel', {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
     expect(handlers.onDone).not.toHaveBeenCalled();
     expect(handlers.onError).not.toHaveBeenCalled();
   });
@@ -834,7 +838,10 @@ describe('streamViaDaemon', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/runs', expect.objectContaining({ method: 'POST' }));
-    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/runs/run-1/cancel', { method: 'POST' });
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/runs/run-1/cancel', {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
     expect(handlers.onDone).not.toHaveBeenCalled();
     expect(handlers.onError).not.toHaveBeenCalled();
   });
@@ -895,6 +902,7 @@ describe('streamViaDaemon', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('/api/runs/run-1/events?after=1', {
       method: 'GET',
+      credentials: 'same-origin',
       signal: expect.any(AbortSignal),
     });
     expect(handlers.onDone).toHaveBeenCalledWith('hello');
@@ -954,6 +962,7 @@ describe('streamViaDaemon', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('/api/runs/run-1/events?after=7', {
       method: 'GET',
+      credentials: 'same-origin',
       signal: expect.any(AbortSignal),
     });
     expect(handlers.onDelta).toHaveBeenCalledWith('lo');

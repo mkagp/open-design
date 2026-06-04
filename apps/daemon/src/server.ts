@@ -11392,6 +11392,12 @@ export async function startServer({
       agentOptions,
       { cwd: effectiveCwd, hasPriorAssistantTurn, agentLogFilePath },
     );
+    if (def.id === 'gemini') {
+      args.push(
+        '-p',
+        'Read the complete Open Design task from stdin and follow it exactly.',
+      );
+    }
 
     // Second-pass budget check that knows about the Windows `.cmd` shim
     // wrap. The pre-buildArgs `checkPromptArgvBudget` only looks at the
@@ -12722,7 +12728,11 @@ export async function startServer({
         }
         run.stdinOpen = true;
       } else {
-        child.stdin.end(composed, 'utf8');
+        const stdinPrompt =
+          def.id === 'gemini' && !composed.endsWith('\n')
+            ? `${composed}\n`
+            : composed;
+        child.stdin.end(stdinPrompt, 'utf8');
       }
     }
   };

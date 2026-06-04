@@ -353,6 +353,7 @@ export async function streamViaDaemon({
   try {
     const createResp = await fetch('/api/runs', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         // Tells the daemon which front-end carrier started the run so the
@@ -414,7 +415,9 @@ export async function reattachDaemonRun(options: DaemonReattachOptions): Promise
 
 export async function fetchChatRunStatus(runId: string): Promise<ChatRunStatusResponse | null> {
   try {
-    const resp = await fetch(`/api/runs/${encodeURIComponent(runId)}`);
+    const resp = await fetch(`/api/runs/${encodeURIComponent(runId)}`, {
+      credentials: 'same-origin',
+    });
     if (!resp.ok) return null;
     return (await resp.json()) as ChatRunStatusResponse;
   } catch {
@@ -437,6 +440,7 @@ export async function submitChatRunToolResult(
   try {
     const resp = await fetch(`/api/runs/${encodeURIComponent(runId)}/tool-result`, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ toolUseId, content, isError: !!options.isError }),
     });
@@ -582,6 +586,7 @@ export async function reportChatRunFeedback(req: {
   try {
     await fetch(`/api/runs/${encodeURIComponent(req.runId)}/feedback`, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req),
     });
@@ -596,7 +601,9 @@ export async function listActiveChatRuns(
 ): Promise<ChatRunStatusResponse[]> {
   try {
     const qs = new URLSearchParams({ projectId, conversationId, status: 'active' });
-    const resp = await fetch(`/api/runs?${qs.toString()}`);
+    const resp = await fetch(`/api/runs?${qs.toString()}`, {
+      credentials: 'same-origin',
+    });
     if (!resp.ok) return [];
     const body = (await resp.json()) as ChatRunListResponse;
     return body.runs ?? [];
@@ -607,7 +614,9 @@ export async function listActiveChatRuns(
 
 export async function listProjectRuns(): Promise<ChatRunStatusResponse[]> {
   try {
-    const resp = await fetch('/api/runs');
+    const resp = await fetch('/api/runs', {
+      credentials: 'same-origin',
+    });
     if (!resp.ok) return [];
     const body = (await resp.json()) as ChatRunListResponse;
     return body.runs ?? [];
@@ -645,7 +654,10 @@ async function consumeDaemonRun({
   const cancelRun = () => {
     if (canceled) return;
     canceled = true;
-    void fetch(`/api/runs/${encodeURIComponent(runId)}/cancel`, { method: 'POST' }).catch(() => {});
+    void fetch(`/api/runs/${encodeURIComponent(runId)}/cancel`, {
+      method: 'POST',
+      credentials: 'same-origin',
+    }).catch(() => {});
   };
 
   cancelSignal?.addEventListener('abort', cancelRun, { once: true });
@@ -661,6 +673,7 @@ async function consumeDaemonRun({
       try {
         resp = await fetch(`/api/runs/${encodeURIComponent(runId)}/events${qs}`, {
           method: 'GET',
+          credentials: 'same-origin',
           signal,
         });
       } catch (err) {

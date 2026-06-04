@@ -1249,6 +1249,66 @@ process.exit(1);
     );
   });
 
+  it('runs Gemini in prompt mode while passing the full Open Design prompt on stdin', async () => {
+    await withFakeAgent(
+      'gemini',
+      `
+const args = process.argv.slice(2);
+if (args[0] === '--version') {
+  console.log('0.45.0-test');
+  process.exit(0);
+}
+const promptIndex = args.indexOf('-p');
+if (promptIndex < 0) {
+  console.error('missing -p prompt mode');
+  process.exit(1);
+}
+if (!String(args[promptIndex + 1] || '').includes('stdin')) {
+  console.error('prompt mode did not point Gemini at stdin');
+  process.exit(1);
+}
+let stdin = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  stdin += chunk;
+});
+process.stdin.on('end', () => {
+  if (!stdin.includes('make an email campaign')) {
+    console.error('missing composed prompt on stdin');
+    process.exit(1);
+  }
+  console.log(JSON.stringify({
+    type: 'message',
+    role: 'assistant',
+    content: 'ok',
+  }));
+  process.exit(0);
+});
+`,
+      async () => {
+        const createResponse = await fetch(`${baseUrl}/api/runs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: 'gemini',
+            model: 'gemini-2.5-pro',
+            message: 'make an email campaign',
+          }),
+        });
+        expect(createResponse.status).toBe(202);
+        const { runId } = await createResponse.json() as { runId: string };
+
+        const eventsResponse = await fetch(`${baseUrl}/api/runs/${runId}/events`);
+        const eventsBody = await readSseUntil(eventsResponse, 'event: end');
+        const statusBody = await waitForRunStatus(baseUrl, runId);
+
+        expect(eventsBody).toContain('event: agent');
+        expect(eventsBody).toContain('ok');
+        expect(statusBody.status).toBe('succeeded');
+      },
+    );
+  });
+
   it('classifies DeepSeek TUI config guidance as typed auth failures', async () => {
     await withFakeAgent(
       'deepseek',

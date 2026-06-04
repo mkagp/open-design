@@ -115,6 +115,7 @@ describe('AuthGate', () => {
     expect(await screen.findByText('Open Design App')).toBeTruthy();
     expect(fetch).toHaveBeenLastCalledWith('/api/auth/session', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clerkToken: 'clerk-token' }),
     });
