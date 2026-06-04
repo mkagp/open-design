@@ -258,7 +258,11 @@ test('gemini args avoid version-fragile trust flags', () => {
 
   assert.deepEqual(args, ['--output-format', 'stream-json', '--yolo']);
   assert.equal(args.includes('--skip-trust'), false);
-  assert.deepEqual(gemini.env, { GEMINI_CLI_TRUST_WORKSPACE: 'true' });
+  assert.deepEqual(gemini.env, {
+    GEMINI_CLI_TRUST_WORKSPACE: 'true',
+    TERM: 'xterm-256color',
+    COLORTERM: 'truecolor',
+  });
 });
 
 test('gemini args preserve custom model selection', () => {

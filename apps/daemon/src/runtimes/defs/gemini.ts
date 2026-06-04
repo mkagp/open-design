@@ -24,7 +24,11 @@ export const geminiAgentDef = {
     // Workspace trust is provided via `GEMINI_CLI_TRUST_WORKSPACE` below
     // instead of `--skip-trust`; several Gemini CLI builds hide or reject the
     // flag even though they accept the documented environment variable.
-    env: { GEMINI_CLI_TRUST_WORKSPACE: 'true' },
+    env: {
+      GEMINI_CLI_TRUST_WORKSPACE: 'true',
+      TERM: 'xterm-256color',
+      COLORTERM: 'truecolor',
+    },
     buildArgs: (_prompt, _imagePaths, _extra, options = {}) => {
       const args = ['--output-format', 'stream-json', '--yolo'];
       if (options.model && options.model !== 'default') {
